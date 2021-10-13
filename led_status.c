@@ -8,6 +8,8 @@
 
 #include "led_status_private.h"
 
+static const char *TAG = "LED patern";
+
 #define ABS(x) (((x) < 0) ? -(x) : (x))
 
 typedef struct {
@@ -40,6 +42,7 @@ static void led_status_tick(led_status_t *status) {
         p = status->signal_pattern;
     }
     
+    //ESP_LOGI(TAG, "Timer delay is %d", p->delay[status->n]);
     printf("Timer delay is %d", p->delay[status->n]);
     
     led_status_write(status, p->delay[status->n] > 0);
