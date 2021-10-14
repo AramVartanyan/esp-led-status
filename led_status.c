@@ -3,17 +3,15 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/timers.h>
 #include <esp_system.h>
-#include <esp_log.h>
 #include <driver/gpio.h>
 
 #include "led_status_private.h"
-
-static const char *TAG = "LED patern";
 
 #define ABS(x) (((x) < 0) ? -(x) : (x))
 
 typedef struct {
     bool active;
+    bool loop;
     uint8_t gpio;
     TimerHandle_t timer;
 
@@ -28,22 +26,21 @@ static void led_status_write(led_status_t *status, bool on) {
 
 static void led_status_tick(led_status_t *status) {
     
-    //led_status_pattern_t *p = status->signal_pattern ? status->signal_pattern : status->pattern;
-    
     led_status_pattern_t *p;
     
     if (!status->signal_pattern) {
-        xTimerStop(status->timer, 1);
-        led_status_write(status, false);
-        ESP_LOGI(TAG, "Timer is stopped");
-        return;
+        if (status->loop) {
+            status->signal_pattern = status->pattern;
+            p = status->signal_pattern;
+        } else {
+            xTimerStop(status->timer, 1);
+            led_status_write(status, false);
+            return;
+        }
         
     } else {
         p = status->signal_pattern;
     }
-    
-    //ESP_LOGI(TAG, "Timer delay is %d", p->delay[status->n]);
-    printf("Timer delay is %d", p->delay[status->n]);
     
     led_status_write(status, p->delay[status->n] > 0);
     xTimerChangePeriod(status->timer, pdMS_TO_TICKS(ABS(p->delay[status->n])), 1);
@@ -83,23 +80,14 @@ void led_status_done(led_status_t *status) {
     free(status);
 }
 
-void led_status_set(led_status_t *status, led_status_pattern_t *pattern) {
-    status->pattern = pattern;
-
-    if (!status->signal_pattern) {
-        status->n = 0;
-        led_status_tick(status);
-    } else {
-    //xTimerStart(status->timer, 1);
-    }
-}
-
-void led_status_signal(led_status_t *status, led_status_pattern_t *pattern) {
+void led_status_signal(led_status_t *status, led_status_pattern_t *pattern, bool loop) {
     
     if (!status->signal_pattern && !pattern)
         return;
     
+    status->pattern = pattern;
     status->signal_pattern = pattern;
+    status->loop = loop;
     status->n = 0;  // whether signal pattern is NULL or not, just reset the state
     led_status_tick(status);
 }
