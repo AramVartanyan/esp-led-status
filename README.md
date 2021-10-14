@@ -1,7 +1,7 @@
 esp-led-status
 ==============
 
-Library for [ESP-OPEN-RTOS](https://github.com/SuperHouse/esp-open-rtos)
+Library for [esp-idf](https://github.com/espressif/esp-idf) and [ESP8266_RTOS_SDK](https://github.com/espressif/ESP8266_RTOS_SDK)
 to communicate device status through different LED blink patterns.
 
 Patterns are defined as a list of delays in milliseconds with positive values
@@ -18,13 +18,13 @@ led_status_pattern_t normal_mode = LED_STATUS_PATTERN({100, -2900});
 led_status_pattern_t three_short_blinks = LED_STATUS_PATTERN({100, -100, 100, -100, 100, -700});
 
 
-#define STATUS_LED_PIN 13
-
 static led_status_t status = led_status_init(STATUS_LED_PIN, 1);
-led_status_set(status, &normal_mode);
 
 // execute one time signal
-led_status_signal(status, &three_short_blinks);
+led_status_signal(status, &three_short_blinks, false);
+
+// execute looped signal
+led_status_signal(status, &waiting_wifi, true);
 ```
 
 License
