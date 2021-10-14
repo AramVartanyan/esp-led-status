@@ -81,13 +81,12 @@ void led_status_done(led_status_t *status) {
 }
 
 void led_status_signal(led_status_t *status, led_status_pattern_t *pattern, bool loop) {
-    
+    status->loop = loop;
     if (!status->signal_pattern && !pattern)
         return;
     
     status->pattern = pattern;
     status->signal_pattern = pattern;
-    status->loop = loop;
     status->n = 0;  // whether signal pattern is NULL or not, just reset the state
     led_status_tick(status);
 }
